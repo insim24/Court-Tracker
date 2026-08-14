@@ -43,3 +43,15 @@ export type WatchedAdvocate = {
   name: string;
   created_at: string;
 };
+
+export type CaseOrderRow = {
+  id: string;
+  case_id: string;
+  order_type: "daily" | "final";
+  order_date: string | null;
+  diary_no: string | null;
+  applicant: string | null;
+  respondent: string | null;
+  pdf_url: string;
+  fetched_at: string;
+};

@@ -8,6 +8,7 @@ import {
   CASE_TYPES,
   type CaseTypeId,
 } from "@/lib/adapters/cgat-srinagar";
+import { fetchAllOrders } from "@/lib/adapters/cgat-orders";
 import { syncLatestCauselist } from "@/lib/causelist-sync";
 
 export type AddCaseState = {
@@ -276,4 +277,74 @@ export async function unsubscribeFromPush(
     .delete()
     .eq("endpoint", endpoint);
   return { error: error?.message ?? null };
+}
+
+export type FetchOrdersState = {
+  error: string | null;
+  message: string | null;
+};
+
+export async function fetchCaseOrders(
+  _prevState: FetchOrdersState,
+  formData: FormData,
+): Promise<FetchOrdersState> {
+  const caseId = formData.get("caseId");
+  if (typeof caseId !== "string" || !caseId) {
+    return { error: "Missing case id.", message: null };
+  }
+
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("cases")
+    .select("case_number")
+    .eq("id", caseId)
+    .single();
+
+  if (fetchError || !existing) {
+    return { error: "Case not found.", message: null };
+  }
+
+  const parsed = existing.case_number
+    ? parseCgatCaseNo(existing.case_number)
+    : null;
+  if (!parsed) {
+    return {
+      error:
+        "Case number isn't in a recognized CAT Srinagar format (e.g. T.A./1234/2021).",
+      message: null,
+    };
+  }
+
+  try {
+    const orders = await fetchAllOrders(parsed);
+
+    if (orders.length === 0) {
+      return { error: null, message: "No orders published for this case yet." };
+    }
+
+    const { error: upsertError } = await supabase.from("case_orders").upsert(
+      orders.map((o) => ({
+        case_id: caseId,
+        order_type: o.orderType,
+        order_date: o.orderDate,
+        diary_no: o.diaryNo,
+        applicant: o.applicant,
+        respondent: o.respondent,
+        pdf_url: o.pdfUrl,
+      })),
+      { onConflict: "case_id,pdf_url" },
+    );
+
+    if (upsertError) {
+      return { error: upsertError.message, message: null };
+    }
+
+    revalidatePath("/");
+    return { error: null, message: `Found ${orders.length} order(s).` };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Order fetch failed.",
+      message: null,
+    };
+  }
 }

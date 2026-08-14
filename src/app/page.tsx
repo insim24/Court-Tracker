@@ -4,8 +4,9 @@ import { CaseForm } from "@/components/case-form";
 import { RefreshCgatButton } from "@/components/refresh-cgat-button";
 import { CaseCalendar } from "@/components/case-calendar";
 import { MobileCaseBrowser } from "@/components/mobile-case-browser";
+import { CaseOrders } from "@/components/case-orders";
 import { deleteCase } from "@/app/actions";
-import type { Case } from "@/lib/types";
+import type { Case, CaseOrderRow } from "@/lib/types";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -25,6 +26,17 @@ export default async function Home({
     .order("next_hearing_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
     .returns<Case[]>();
+
+  const { data: allOrders } = await supabase
+    .from("case_orders")
+    .select("*")
+    .order("order_date", { ascending: false, nullsFirst: false })
+    .returns<CaseOrderRow[]>();
+
+  const ordersByCase: Record<string, CaseOrderRow[]> = {};
+  for (const o of allOrders ?? []) {
+    (ordersByCase[o.case_id] ??= []).push(o);
+  }
 
   const hearingCounts: Record<string, number> = {};
   for (const c of cases ?? []) {
@@ -158,6 +170,10 @@ export default async function Home({
                                 c.cgat_case_year && (
                                   <RefreshCgatButton caseId={c.id} />
                                 )}
+                              <CaseOrders
+                                caseId={c.id}
+                                orders={ordersByCase[c.id] ?? []}
+                              />
                               <form action={deleteCase.bind(null, c.id)}>
                                 <button
                                   type="submit"
@@ -175,7 +191,10 @@ export default async function Home({
                 </div>
 
                 {/* Mobile: interactive card list + search bar (search appears after the list) */}
-                <MobileCaseBrowser cases={visibleCases} />
+                <MobileCaseBrowser
+                  cases={visibleCases}
+                  ordersByCase={ordersByCase}
+                />
               </>
             )}
           </section>

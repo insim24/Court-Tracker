@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { deleteCase } from "@/app/actions";
 import { RefreshCgatButton } from "@/components/refresh-cgat-button";
-import type { Case } from "@/lib/types";
+import { CaseOrders } from "@/components/case-orders";
+import type { Case, CaseOrderRow } from "@/lib/types";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -49,7 +50,13 @@ function SearchIcon() {
   );
 }
 
-export function MobileCaseBrowser({ cases }: { cases: Case[] }) {
+export function MobileCaseBrowser({
+  cases,
+  ordersByCase,
+}: {
+  cases: Case[];
+  ordersByCase: Record<string, CaseOrderRow[]>;
+}) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -118,6 +125,7 @@ export function MobileCaseBrowser({ cases }: { cases: Case[] }) {
                 </button>
               </form>
             </div>
+            <CaseOrders caseId={c.id} orders={ordersByCase[c.id] ?? []} />
           </div>
         ))}
       </div>
