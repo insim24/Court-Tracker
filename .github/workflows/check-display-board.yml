@@ -1,0 +1,19 @@
+name: Check CAT Srinagar Display Board
+
+on:
+  schedule:
+    # Every 5 minutes, ~9:30am-5:30pm IST, Mon-Fri (court days).
+    # GitHub's schedule trigger is best-effort and can run a few minutes
+    # late during high load; it's also auto-disabled after 60 days with no
+    # repo activity (any push/commit re-enables it).
+    - cron: "*/5 4-11 * * 1-5"
+  workflow_dispatch: {} # allows manually triggering a run from the Actions tab, for testing
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call check-display-board endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/cron/check-display-board" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

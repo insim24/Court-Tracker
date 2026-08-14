@@ -1,7 +1,7 @@
 -- Stage 1: core "cases" table for the court case tracker.
+-- Single-user mode: no auth flow yet, so rows aren't scoped to a user.
 create table if not exists public.cases (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
   case_number text,
   title text not null,
   court text,
@@ -14,7 +14,6 @@ create table if not exists public.cases (
   updated_at timestamptz not null default now()
 );
 
-create index if not exists cases_user_id_idx on public.cases (user_id);
 create index if not exists cases_next_hearing_date_idx on public.cases (next_hearing_date);
 
 -- Keep updated_at current on every row change.
@@ -34,22 +33,24 @@ create trigger cases_set_updated_at
   for each row
   execute function public.set_updated_at();
 
--- Row Level Security: each user can only see and manage their own cases.
+-- Row Level Security: enabled for good practice, but permissive since this
+-- is a single-user app with no login flow yet. Tighten this (scope to
+-- auth.uid()) if/when real auth is added.
 alter table public.cases enable row level security;
 
-create policy "Users can view their own cases"
+create policy "Anyone can view cases"
   on public.cases for select
-  using (auth.uid() = user_id);
+  using (true);
 
-create policy "Users can insert their own cases"
+create policy "Anyone can insert cases"
   on public.cases for insert
-  with check (auth.uid() = user_id);
+  with check (true);
 
-create policy "Users can update their own cases"
+create policy "Anyone can update cases"
   on public.cases for update
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using (true)
+  with check (true);
 
-create policy "Users can delete their own cases"
+create policy "Anyone can delete cases"
   on public.cases for delete
-  using (auth.uid() = user_id);
+  using (true);
