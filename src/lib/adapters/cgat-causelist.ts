@@ -359,6 +359,19 @@ export async function fetchAndParseCauselist(): Promise<{
   // (e.g. the home page, via actions.ts) even when PDF parsing was never
   // invoked. Deferring the import means it only loads when this function
   // actually runs.
+  //
+  // pdf-parse's internal layout analysis (table/shape detection) also
+  // touches pdfjs-dist's canvas-pattern transform code even during plain
+  // text extraction, which unconditionally does `new DOMMatrix(...)` — with
+  // no canvas library present on Vercel's Node runtime, that throws for any
+  // causelist PDF whose layout happens to hit that path (e.g. shaded table
+  // cells), even though earlier ones worked fine. A lightweight, real
+  // DOMMatrix polyfill (not just a present-but-empty stub) avoids that.
+  if (typeof globalThis.DOMMatrix === "undefined") {
+    const { default: DOMMatrixPolyfill } = await import("dommatrix");
+    (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix =
+      DOMMatrixPolyfill;
+  }
   const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: buffer });
   const result = await parser.getText();
