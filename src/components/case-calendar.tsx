@@ -5,9 +5,11 @@ import { MonthCalendar } from "./month-calendar";
 export function CaseCalendar({
   selectedDate,
   hearingCounts,
+  compact = true,
 }: {
   selectedDate: string | null;
   hearingCounts: Record<string, number>;
+  compact?: boolean;
 }) {
   return (
     <MonthCalendar
@@ -15,7 +17,7 @@ export function CaseCalendar({
       selectedDate={selectedDate}
       primaryCounts={hearingCounts}
       primaryLabel="Hearing scheduled"
-      compact
+      compact={compact}
     />
   );
 }
