@@ -1,5 +1,3 @@
-import { PDFParse } from "pdf-parse";
-
 const CAUSELIST_URL = "https://cis.cgat.gov.in/catlive/display_causelist.php";
 const SRINAGAR_SCHEMA_ID = 119;
 
@@ -355,6 +353,13 @@ export async function fetchAndParseCauselist(): Promise<{
 }> {
   const { date, pdfUrl } = await fetchLatestCauselistPdfUrl();
   const buffer = await fetchCauselistPdfBuffer(pdfUrl);
+  // Dynamic import: pdf-parse pulls in pdfjs-dist, which references browser
+  // APIs (DOMMatrix) unavailable in some Node runtimes. Loading it eagerly at
+  // module scope crashed every route that shared a bundle with this file
+  // (e.g. the home page, via actions.ts) even when PDF parsing was never
+  // invoked. Deferring the import means it only loads when this function
+  // actually runs.
+  const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: buffer });
   const result = await parser.getText();
   const { causelistDate, entries } = parseCauselistText(result.text);
