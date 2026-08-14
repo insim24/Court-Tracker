@@ -348,3 +348,102 @@ export async function fetchCaseOrders(
     };
   }
 }
+
+export type FetchAllOrdersState = {
+  error: string | null;
+  message: string | null;
+};
+
+// Bounded concurrency so fetching orders for every tracked case doesn't
+// fire dozens of simultaneous requests at the source site at once.
+const ORDER_FETCH_CONCURRENCY = 4;
+
+export async function fetchAllCaseOrders(
+  _prevState: FetchAllOrdersState,
+): Promise<FetchAllOrdersState> {
+  const supabase = await createClient();
+  const { data: cases, error: fetchError } = await supabase
+    .from("cases")
+    .select("id, case_number");
+
+  if (fetchError) {
+    return { error: fetchError.message, message: null };
+  }
+  if (!cases || cases.length === 0) {
+    return { error: null, message: "No cases to fetch orders for." };
+  }
+
+  const targets = cases
+    .map((c) => ({
+      id: c.id as string,
+      parsed: c.case_number ? parseCgatCaseNo(c.case_number) : null,
+    }))
+    .filter(
+      (c): c is { id: string; parsed: NonNullable<typeof c.parsed> } =>
+        c.parsed !== null,
+    );
+  const skipped = cases.length - targets.length;
+
+  let totalOrders = 0;
+  let failedCases = 0;
+  const rows: {
+    case_id: string;
+    order_type: "daily" | "final";
+    order_date: string | null;
+    diary_no: string | null;
+    applicant: string | null;
+    respondent: string | null;
+    pdf_url: string;
+  }[] = [];
+
+  for (let i = 0; i < targets.length; i += ORDER_FETCH_CONCURRENCY) {
+    const batch = targets.slice(i, i + ORDER_FETCH_CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map(async ({ id, parsed }) => ({
+        id,
+        orders: await fetchAllOrders(parsed),
+      })),
+    );
+
+    for (const result of results) {
+      if (result.status === "rejected") {
+        failedCases++;
+        continue;
+      }
+      totalOrders += result.value.orders.length;
+      for (const o of result.value.orders) {
+        rows.push({
+          case_id: result.value.id,
+          order_type: o.orderType,
+          order_date: o.orderDate,
+          diary_no: o.diaryNo,
+          applicant: o.applicant,
+          respondent: o.respondent,
+          pdf_url: o.pdfUrl,
+        });
+      }
+    }
+  }
+
+  if (rows.length > 0) {
+    const { error: upsertError } = await supabase
+      .from("case_orders")
+      .upsert(rows, { onConflict: "case_id,pdf_url" });
+    if (upsertError) {
+      return { error: upsertError.message, message: null };
+    }
+  }
+
+  revalidatePath("/");
+
+  const parts = [
+    `Checked ${targets.length} case(s), found ${totalOrders} order(s).`,
+  ];
+  if (skipped > 0) {
+    parts.push(`${skipped} skipped (no recognizable case number).`);
+  }
+  if (failedCases > 0) {
+    parts.push(`${failedCases} failed to fetch.`);
+  }
+  return { error: null, message: parts.join(" ") };
+}

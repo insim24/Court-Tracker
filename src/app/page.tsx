@@ -5,6 +5,7 @@ import { RefreshCgatButton } from "@/components/refresh-cgat-button";
 import { CaseCalendar } from "@/components/case-calendar";
 import { MobileCaseBrowser } from "@/components/mobile-case-browser";
 import { CaseOrders } from "@/components/case-orders";
+import { FetchAllOrdersButton } from "@/components/fetch-all-orders-button";
 import { deleteCase } from "@/app/actions";
 import type { Case, CaseOrderRow } from "@/lib/types";
 
@@ -103,18 +104,21 @@ export default async function Home({
           </aside>
 
           <section className="flex flex-col gap-3 lg:col-start-1 lg:row-start-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-medium text-black dark:text-zinc-50">
                 {selectedDate ? `Cases on ${selectedDate}` : "Cases"}
               </h2>
-              {selectedDate && (
-                <Link
-                  href="/"
-                  className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-                >
-                  Clear filter ×
-                </Link>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <FetchAllOrdersButton />
+                {selectedDate && (
+                  <Link
+                    href="/"
+                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Clear filter ×
+                  </Link>
+                )}
+              </div>
             </div>
 
             {error && (
