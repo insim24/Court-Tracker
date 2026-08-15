@@ -115,6 +115,7 @@ export function parseCauselistText(text: string): {
   let inNotification = false;
   let lastSerial: number | null = null;
   let expectJudge = false;
+  let inHeaderBlock = false;
 
   let i = 0;
   while (i < lines.length) {
@@ -131,7 +132,15 @@ export function parseCauselistText(text: string): {
     }
 
     if (/^-{10,}$/.test(line)) {
-      expectJudge = true;
+      // Each section header is framed by a pair of these separator lines
+      // (open, judge line(s), close). Only the *opening* one should arm
+      // expectJudge — otherwise the closing separator treats whatever
+      // follows as a judge name too. That's harmless for numbered courts
+      // (the next line is always "COURT NO :", which self-excludes) but
+      // for the Deputy Registrar's list — which has no "COURT NO :" line —
+      // it clobbered the real judge with the next content line instead.
+      inHeaderBlock = !inHeaderBlock;
+      expectJudge = inHeaderBlock;
       i++;
       continue;
     }
@@ -161,8 +170,18 @@ export function parseCauselistText(text: string): {
       continue;
     }
 
+    // Each printed page restarts with this header, and numbered courts
+    // always restate "COURT NO : X" right after it — except the Deputy
+    // Registrar's list, which never states a court number on any of its
+    // pages. Resetting here (rather than only ever setting courtNo) stops
+    // a numbered court from leaking into that section on the page after it.
+    if (line === "DAILY CAUSELIST") {
+      courtNo = null;
+      i++;
+      continue;
+    }
+
     if (
-      line === "DAILY CAUSELIST" ||
       line === "CENTRAL ADMINISTRATIVE TRIBUNAL SRINAGAR" ||
       /^LIST OF CASES TO BE HEARD ON/i.test(line) ||
       /^SO\/Dy\. REGISTRAR/i.test(line) ||
