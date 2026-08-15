@@ -31,16 +31,16 @@ export function WatchedAdvocates({
   const [state, formAction] = useActionState(addWatchedAdvocate, initialState);
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-black/[.08] p-4 dark:border-white/[.145]">
+    <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
       <h2 className="text-sm font-medium">Watched advocates</h2>
-      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+      <p className="text-xs text-muted">
         Flagged in the causelist even for cases not in your tracker.
       </p>
       <div className="flex flex-wrap gap-2">
         {advocates.map((a) => (
           <span
             key={a.id}
-            className="flex items-center gap-1 rounded-full bg-black/[.05] px-3 py-1 text-xs dark:bg-white/[.1]"
+            className="flex items-center gap-1 rounded-full bg-chip px-3 py-1 text-xs"
           >
             {a.name}
             <form action={removeWatchedAdvocate.bind(null, a.id)}>
@@ -63,7 +63,7 @@ export function WatchedAdvocates({
           name="name"
           placeholder="Advocate name"
           required
-          className="flex-1 rounded border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
+          className="flex-1 rounded border border-border bg-transparent px-3 py-1.5 text-sm"
         />
         <AddButton />
       </form>

@@ -124,7 +124,7 @@ export function PushSubscribeButton() {
 
   if (status === "needs-install") {
     return (
-      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+      <p className="text-xs text-muted">
         To get hearing alerts on iPhone: tap the Share icon in Safari, then{" "}
         <strong>Add to Home Screen</strong>. Open the app from your home
         screen, then come back here to enable notifications.
@@ -134,7 +134,7 @@ export function PushSubscribeButton() {
 
   if (status === "unsupported") {
     return (
-      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+      <p className="text-xs text-muted">
         Push notifications aren&apos;t supported in this browser.
       </p>
     );
@@ -155,7 +155,7 @@ export function PushSubscribeButton() {
         type="button"
         onClick={status === "subscribed" ? handleUnsubscribe : handleSubscribe}
         disabled={busy}
-        className="rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium transition-colors hover:bg-black/[.04] disabled:opacity-50 dark:border-white/[.145] dark:hover:bg-white/[.08]"
+        className="rounded-full border border-border px-4 py-1.5 text-xs font-medium transition-colors hover:bg-surface-hover disabled:opacity-50"
       >
         {busy
           ? "Working…"

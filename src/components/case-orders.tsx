@@ -19,7 +19,7 @@ function FetchButton({ hasOrders }: { hasOrders: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+      className="text-xs font-medium text-accent hover:underline disabled:opacity-50"
     >
       {pending ? "Fetching…" : hasOrders ? "Refresh orders" : "Fetch orders"}
     </button>
@@ -50,7 +50,7 @@ export function CaseOrders({
       onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
       className="text-xs"
     >
-      <summary className="cursor-pointer font-medium text-blue-600 hover:underline dark:text-blue-400">
+      <summary className="cursor-pointer font-medium text-accent hover:underline">
         Orders{orders.length > 0 ? ` (${orders.length})` : ""}
       </summary>
       <div className="mt-2 flex flex-col items-start gap-2">
@@ -77,7 +77,7 @@ export function CaseOrders({
                   href={o.pdf_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-blue-600 hover:underline dark:text-blue-400"
+                  className="flex items-center gap-1.5 text-accent hover:underline"
                 >
                   <span
                     className={

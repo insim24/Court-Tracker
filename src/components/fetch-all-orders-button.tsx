@@ -16,7 +16,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-medium text-blue-700 transition-colors duration-200 hover:bg-blue-100 disabled:opacity-50 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-900/40"
+      className="rounded-full border border-accent-border bg-accent-bg px-4 py-1.5 text-xs font-medium text-accent-strong transition-colors duration-200 hover:bg-accent-bg disabled:opacity-50"
     >
       {pending ? "Fetching orders for all cases…" : "Fetch orders for all cases"}
     </button>

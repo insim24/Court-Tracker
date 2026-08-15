@@ -68,7 +68,7 @@ function EntryCard({
   badge?: { label: string; className: string };
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-black/[.08] p-3 text-sm dark:border-white/[.145]">
+    <div className="flex flex-col gap-1 rounded-lg border border-border p-3 text-sm">
       <div className="flex items-start justify-between gap-2">
         <div>
           <span className="font-medium">
@@ -93,7 +93,7 @@ function EntryCard({
         {entry.applicant ?? "—"} <span className="text-zinc-500">vs</span>{" "}
         {entry.respondent ?? "—"}
       </p>
-      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+      <p className="text-xs text-muted">
         Court {entry.court_no ?? "—"}
         {entry.judge && ` · ${entry.judge}`}
         {entry.category && ` · ${entry.category}`}
@@ -183,17 +183,17 @@ export default async function CauseListPage({
   const hasDataForToday = availableDates.includes(today);
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-1 flex-col bg-background font-sans">
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-12">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Cause List Watcher
           </h1>
           <div className="flex items-center gap-4">
             <FetchCauselistButton />
             <Link
               href="/"
-              className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+              className="text-sm font-medium text-accent hover:underline"
             >
               ← Back to cases
             </Link>
@@ -205,16 +205,16 @@ export default async function CauseListPage({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
-              <section className="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 md:w-72 md:flex-shrink-0 dark:border-blue-900/50 dark:bg-blue-950/30">
+              <section className="flex flex-col gap-3 rounded-lg border border-accent-border bg-accent-bg p-4 md:w-72 md:flex-shrink-0">
                 <div className="flex items-baseline justify-between">
-                  <h2 className="text-sm font-semibold text-black dark:text-zinc-50">
+                  <h2 className="text-sm font-semibold text-foreground">
                     Today&apos;s Cases
                   </h2>
                   <span className="text-xs text-zinc-500">{today}</span>
                 </div>
 
                 {!hasDataForToday && (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-muted">
                     No causelist fetched for today yet.
                   </p>
                 )}
@@ -224,32 +224,32 @@ export default async function CauseListPage({
                     <div className="flex items-center gap-4 text-sm">
                       <span className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                        <strong className="font-semibold text-black dark:text-zinc-50">
+                        <strong className="font-semibold text-foreground">
                           {todaySplit.tracked.length}
                         </strong>
-                        <span className="text-zinc-600 dark:text-zinc-400">
+                        <span className="text-muted">
                           tracked
                         </span>
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
-                        <strong className="font-semibold text-black dark:text-zinc-50">
+                        <strong className="font-semibold text-foreground">
                           {todaySplit.advocateFlagged.length}
                         </strong>
-                        <span className="text-zinc-600 dark:text-zinc-400">
+                        <span className="text-muted">
                           flagged
                         </span>
                       </span>
                     </div>
 
                     {todaySplit.tracked.length > 0 && (
-                      <ul className="flex flex-col gap-2 border-t border-blue-200 pt-3 dark:border-blue-900">
+                      <ul className="flex flex-col gap-2 border-t border-accent-border pt-3">
                         {todaySplit.tracked.slice(0, 6).map(({ entry, case: c }) => (
                           <li key={entry.id} className="flex flex-col gap-0.5">
-                            <span className="text-[11px] font-medium uppercase tracking-wide text-blue-700 dark:text-blue-400">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-accent-strong">
                               Court {entry.court_no ?? "—"} · Sl. {entry.serial_no ?? "—"}
                             </span>
-                            <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">
+                            <span className="truncate text-xs text-muted">
                               {c.title.toUpperCase()}{" "}
                               <span className="text-zinc-500">
                                 ({c.case_number ?? "—"})
@@ -265,7 +265,7 @@ export default async function CauseListPage({
                 {activeDate !== today && (
                   <Link
                     href={`/cause-list?date=${today}`}
-                    className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-xs font-medium text-accent hover:underline"
                   >
                     View today →
                   </Link>
@@ -282,7 +282,7 @@ export default async function CauseListPage({
             </div>
 
             {!hasDataForActiveDate && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-muted">
                 No causelist fetched for {activeDate}. The source site only
                 publishes the next hearing day at a time — click &quot;Fetch
                 latest causelist&quot; above to pull whatever&apos;s currently
@@ -294,20 +294,20 @@ export default async function CauseListPage({
             {hasDataForActiveDate && (
               <>
                 <section className="flex flex-col gap-3">
-                  <h2 className="text-lg font-medium text-black dark:text-zinc-50">
+                  <h2 className="text-lg font-medium text-foreground">
                     Your tracked cases listed on {activeDate} (
                     {activeSplit.tracked.length})
                   </h2>
                   {activeSplit.tracked.length === 0 && (
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <p className="text-sm text-muted">
                       None of your tracked cases appear on this date&apos;s
                       list.
                     </p>
                   )}
                   {activeSplit.tracked.length > 0 && (
-                    <div className="overflow-x-auto rounded-lg border border-black/[.08] dark:border-white/[.145]">
+                    <div className="overflow-x-auto rounded-lg border border-border">
                       <table className="w-full text-left text-sm">
-                        <thead className="bg-black/[.03] dark:bg-white/[.06]">
+                        <thead className="bg-surface-hover">
                           <tr>
                             <th className="px-3 py-2 font-medium">Serial #</th>
                             <th className="px-3 py-2 font-medium">Court</th>
@@ -323,7 +323,7 @@ export default async function CauseListPage({
                           {activeSplit.tracked.map(({ entry, case: c }) => (
                             <tr
                               key={entry.id}
-                              className="border-t border-black/[.08] dark:border-white/[.145]"
+                              className="border-t border-border"
                             >
                               <td className="px-3 py-2">
                                 {entry.serial_no ?? "—"}
@@ -355,11 +355,11 @@ export default async function CauseListPage({
                 </section>
 
                 <section className="flex flex-col gap-3">
-                  <h2 className="text-lg font-medium text-black dark:text-zinc-50">
+                  <h2 className="text-lg font-medium text-foreground">
                     Watched advocate matches (
                     {activeSplit.advocateFlagged.length})
                   </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-muted">
                     Cases not yet in your tracker, but involving a watched
                     advocate.
                   </p>
@@ -379,7 +379,7 @@ export default async function CauseListPage({
                 </section>
 
                 <details className="flex flex-col gap-3">
-                  <summary className="cursor-pointer text-lg font-medium text-black dark:text-zinc-50">
+                  <summary className="cursor-pointer text-lg font-medium text-foreground">
                     All other entries ({activeSplit.rest.length})
                   </summary>
                   <div className="mt-3 flex flex-col gap-2">

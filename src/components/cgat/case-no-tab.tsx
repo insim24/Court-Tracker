@@ -70,7 +70,7 @@ export function CaseNoTab() {
     <div className="flex flex-col gap-8">
       <form
         onSubmit={handleSearch}
-        className="grid w-full grid-cols-1 gap-3 rounded-lg border border-black/[.08] p-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end dark:border-white/[.145]"
+        className="grid w-full grid-cols-1 gap-3 rounded-lg border border-border p-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
       >
         <div>
           <label
@@ -84,7 +84,7 @@ export function CaseNoTab() {
             value={caseTypeId}
             onChange={(e) => setCaseTypeId(e.target.value)}
             required
-            className="w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
           >
             <option value="">Select</option>
             {Object.entries(CASE_TYPES).map(([id, label]) => (
@@ -103,7 +103,7 @@ export function CaseNoTab() {
             value={caseNo}
             onChange={(e) => setCaseNo(e.target.value)}
             required
-            className="w-24 rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="w-24 rounded border border-border bg-transparent px-3 py-2 text-sm"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export function CaseNoTab() {
             value={caseYear}
             onChange={(e) => setCaseYear(e.target.value)}
             required
-            className="w-24 rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="w-24 rounded border border-border bg-transparent px-3 py-2 text-sm"
             placeholder="2026"
           />
         </div>
@@ -138,13 +138,13 @@ export function CaseNoTab() {
       )}
 
       {result && (
-        <div className="flex flex-col gap-3 rounded-lg border border-black/[.08] p-4 dark:border-white/[.145]">
+        <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">
                 {result.applicant} vs {result.respondent}
               </p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-muted">
                 {result.caseno} · filed {result.dateoffiling} ·{" "}
                 <span className="capitalize">{result.casestatus}</span>
               </p>
@@ -167,7 +167,7 @@ export function CaseNoTab() {
             </p>
           )}
           {!importState.error && importState.skipped > 0 && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-sm text-muted">
               Already in your cases.
             </p>
           )}

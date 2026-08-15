@@ -48,7 +48,7 @@ export function AdvocateSearchTab() {
     <div className="flex flex-col gap-8">
       <form
         onSubmit={handleSearch}
-        className="grid w-full grid-cols-1 gap-3 rounded-lg border border-black/[.08] p-4 sm:grid-cols-[auto_1fr_auto] sm:items-end dark:border-white/[.145]"
+        className="grid w-full grid-cols-1 gap-3 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr_auto] sm:items-end"
       >
         <div>
           <label htmlFor="advType" className="mb-1 block text-sm font-medium">
@@ -58,7 +58,7 @@ export function AdvocateSearchTab() {
             id="advType"
             value={advType}
             onChange={(e) => setAdvType(e.target.value as "1" | "2")}
-            className="w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
           >
             <option value="1">Applicant</option>
             <option value="2">Respondent</option>
@@ -73,7 +73,7 @@ export function AdvocateSearchTab() {
             value={advName}
             onChange={(e) => setAdvName(e.target.value)}
             required
-            className="w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm dark:border-white/[.145]"
+            className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
             placeholder="e.g. Satinder Singh"
           />
         </div>

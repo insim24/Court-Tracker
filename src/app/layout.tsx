@@ -1,7 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SettingsButton } from "@/components/settings-button";
+import { THEMES, THEME_IDS } from "@/lib/themes";
 import "./globals.css";
+
+// Runs before hydration so the stored theme applies on first paint instead
+// of flashing the default, then getting swapped client-side. Kept as a
+// tiny inline script (not a module) since it must execute synchronously,
+// before the browser paints the (server-rendered, default-themed) HTML.
+const DARK_THEME_IDS = THEMES.filter((t) => t.isDark).map((t) => t.id);
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var ids=${JSON.stringify(THEME_IDS)};var dark=${JSON.stringify(DARK_THEME_IDS)};if(t&&ids.indexOf(t)!==-1){document.documentElement.dataset.theme=t;if(dark.indexOf(t)!==-1){document.documentElement.classList.add("dark");}}}catch(e){}})();`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,10 +47,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <ServiceWorkerRegister />
-        {children}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <ThemeProvider>
+          <ServiceWorkerRegister />
+          {children}
+          <SettingsButton />
+        </ThemeProvider>
       </body>
     </html>
   );

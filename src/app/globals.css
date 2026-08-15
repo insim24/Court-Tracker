@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
+/* `dark:` normally tracks the OS's prefers-color-scheme, which would fight
+   with our own theme picker (e.g. a light theme chosen while the OS is in
+   dark mode). Redirect it to track the .dark class the theme provider
+   toggles on <html> instead, based on which theme is actually selected. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eef3fb;
+  --foreground: #172033;
+  --surface: #ffffff;
+  --surface-hover: #e4ecf8;
+  --border: #d3dfef;
+  --muted: #55647d;
+  --muted-2: #8493ac;
+  --chip: #e4ecf8;
+  --accent: #2563eb;
+  --accent-bg: #e3edfe;
+  --accent-border: #bdd4fb;
+  --accent-strong: #1d4ed8;
+}
+
+/* Arctic Blue (default) is the :root fallback above so there's a sensible
+   look even before the theme-provider script runs. */
+:root[data-theme="arctic-blue"] {
+  --background: #eef3fb;
+  --foreground: #172033;
+  --surface: #ffffff;
+  --surface-hover: #e4ecf8;
+  --border: #d3dfef;
+  --muted: #55647d;
+  --muted-2: #8493ac;
+  --chip: #e4ecf8;
+  --accent: #2563eb;
+  --accent-bg: #e3edfe;
+  --accent-border: #bdd4fb;
+  --accent-strong: #1d4ed8;
+}
+
+:root[data-theme="midnight-ink"] {
+  --background: #0b0e1a;
+  --foreground: #e8eaf3;
+  --surface: #131829;
+  --surface-hover: #1b2236;
+  --border: #2a3348;
+  --muted: #9aa2bb;
+  --muted-2: #6b7390;
+  --chip: #1c2338;
+  --accent: #7c9dfc;
+  --accent-bg: #16213f;
+  --accent-border: #2c3f6b;
+  --accent-strong: #aac1ff;
+}
+
+:root[data-theme="espresso"] {
+  --background: #1a1310;
+  --foreground: #f1e6da;
+  --surface: #241b16;
+  --surface-hover: #2d221c;
+  --border: #3a2d24;
+  --muted: #b8a696;
+  --muted-2: #8a7868;
+  --chip: #2a201a;
+  --accent: #e0a458;
+  --accent-bg: #2e2117;
+  --accent-border: #4a3624;
+  --accent-strong: #f0c080;
+}
+
+:root[data-theme="sage-meadow"] {
+  --background: #eef4ee;
+  --foreground: #1b2a1e;
+  --surface: #ffffff;
+  --surface-hover: #e3ede4;
+  --border: #cfe0d2;
+  --muted: #52664f;
+  --muted-2: #7f9480;
+  --chip: #e3ede4;
+  --accent: #3f7d56;
+  --accent-bg: #e3f1e6;
+  --accent-border: #bcdcc4;
+  --accent-strong: #2f6244;
+}
+
+:root[data-theme="lavender-mist"] {
+  --background: #f3f0fc;
+  --foreground: #241f36;
+  --surface: #ffffff;
+  --surface-hover: #eae4fa;
+  --border: #dcd2f5;
+  --muted: #5f5580;
+  --muted-2: #8b7fab;
+  --chip: #eae4fa;
+  --accent: #7256d6;
+  --accent-bg: #ece6fb;
+  --accent-border: #d2c4f5;
+  --accent-strong: #5b3fc0;
+}
+
+:root[data-theme="seafoam"] {
+  --background: #eaf9f6;
+  --foreground: #142826;
+  --surface: #ffffff;
+  --surface-hover: #ddf2ed;
+  --border: #c3e6de;
+  --muted: #3f6b64;
+  --muted-2: #6f9a91;
+  --chip: #ddf2ed;
+  --accent: #0f9b8e;
+  --accent-bg: #ddf5f1;
+  --accent-border: #b0e3d9;
+  --accent-strong: #0b7d73;
+}
+
+:root[data-theme="slate-frost"] {
+  --background: #eef1f5;
+  --foreground: #1c232c;
+  --surface: #ffffff;
+  --surface-hover: #e2e7ee;
+  --border: #d0d8e2;
+  --muted: #556274;
+  --muted-2: #8492a5;
+  --chip: #e2e7ee;
+  --accent: #46607d;
+  --accent-bg: #e4eaf1;
+  --accent-border: #c3d0e0;
+  --accent-strong: #324a63;
+}
+
+:root[data-theme="rose-quartz"] {
+  --background: #faeef2;
+  --foreground: #2e1c22;
+  --surface: #ffffff;
+  --surface-hover: #f3e1e7;
+  --border: #f0d3dc;
+  --muted: #7d525f;
+  --muted-2: #ab8390;
+  --chip: #f3e1e7;
+  --accent: #b8577a;
+  --accent-bg: #f7e3ea;
+  --accent-border: #edc0d1;
+  --accent-strong: #97395c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-chip: var(--chip);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-border: var(--accent-border);
+  --color-accent-strong: var(--accent-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }

@@ -99,7 +99,7 @@ export function MonthCalendar({
   return (
     <div
       className={[
-        "flex flex-col rounded-lg border border-blue-100 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/30",
+        "flex flex-col rounded-lg border border-accent-border bg-accent-bg",
         compact ? "gap-2 p-3" : "gap-3 p-4",
       ].join(" ")}
     >
@@ -109,7 +109,7 @@ export function MonthCalendar({
           onClick={() => goToMonth(-1)}
           aria-label="Previous month"
           className={[
-            "flex items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-blue-100 hover:text-black dark:hover:bg-blue-900/40 dark:hover:text-white",
+            "flex items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-accent-bg hover:text-foreground",
             compact ? "h-6 w-6" : "h-8 w-8",
           ].join(" ")}
         >
@@ -125,7 +125,7 @@ export function MonthCalendar({
         </button>
         <span
           className={[
-            "font-semibold text-black dark:text-zinc-50",
+            "font-semibold text-foreground",
             compact ? "text-xs" : "text-sm",
           ].join(" ")}
         >
@@ -136,7 +136,7 @@ export function MonthCalendar({
           onClick={() => goToMonth(1)}
           aria-label="Next month"
           className={[
-            "flex items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-blue-100 hover:text-black dark:hover:bg-blue-900/40 dark:hover:text-white",
+            "flex items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-accent-bg hover:text-foreground",
             compact ? "h-6 w-6" : "h-8 w-8",
           ].join(" ")}
         >
@@ -180,11 +180,11 @@ export function MonthCalendar({
                 "relative flex aspect-square flex-col items-center justify-center rounded-md transition-colors",
                 compact ? "text-[11px]" : "rounded-lg text-sm",
                 cell.inCurrentMonth
-                  ? "text-black dark:text-zinc-50"
-                  : "text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-zinc-50",
+                  ? "text-foreground"
+                  : "text-zinc-400 hover:text-foreground dark:text-zinc-600 dark:hover:text-zinc-50",
                 isSelected
-                  ? "bg-blue-200 ring-2 ring-inset ring-blue-500 dark:bg-blue-800/50"
-                  : "hover:bg-blue-100 dark:hover:bg-blue-900/40",
+                  ? "bg-accent-border ring-2 ring-inset ring-accent"
+                  : "hover:bg-accent-bg",
               ].join(" ")}
             >
               <span

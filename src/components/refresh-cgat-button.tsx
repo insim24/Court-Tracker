@@ -12,7 +12,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="text-xs text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+      className="text-xs text-accent hover:underline disabled:opacity-50"
     >
       {pending ? "Refreshing…" : "Refresh from CGAT"}
     </button>

@@ -69,7 +69,7 @@ export function CgatResultsTable({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-black dark:text-zinc-50">
+        <h2 className="text-lg font-medium text-foreground">
           {results.length} result{results.length === 1 ? "" : "s"}
         </h2>
         <button
@@ -96,9 +96,9 @@ export function CgatResultsTable({
           </p>
         )}
 
-      <div className="overflow-x-auto rounded-lg border border-black/[.08] dark:border-white/[.145]">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-sm">
-          <thead className="bg-black/[.03] dark:bg-white/[.06]">
+          <thead className="bg-surface-hover">
             <tr>
               <th className="px-3 py-2">
                 <input
@@ -118,7 +118,7 @@ export function CgatResultsTable({
             {results.map((r) => (
               <tr
                 key={r.diaryno}
-                className="border-t border-black/[.08] dark:border-white/[.145]"
+                className="border-t border-border"
               >
                 <td className="px-3 py-2">
                   <input
