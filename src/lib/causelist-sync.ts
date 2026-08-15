@@ -6,6 +6,17 @@ export type SyncResult =
   | { error: string }
   | { error: null; causelistDate: string; count: number };
 
+// The source site never exposes an archive, so causelist_entries is a
+// pure accumulate-only history (see migration 0003) with nothing else
+// pruning it. Cap it at 60 days so it doesn't grow unbounded.
+const RETENTION_DAYS = 60;
+
+function cutoffDateIso(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().slice(0, 10);
+}
+
 // Shared by the manual "Fetch latest causelist" button and the background
 // daily scheduler, so both stay behaviorally identical. Takes an optional
 // Supabase client so callers with a request-scoped (cookie-based) client can
@@ -53,6 +64,19 @@ export async function syncLatestCauselist(
 
     if (error) {
       return { error: error.message };
+    }
+
+    // Best-effort: an old-entry cleanup failure shouldn't fail a successful
+    // fetch, so it's only logged, not surfaced as a sync error.
+    const { error: cleanupError } = await client
+      .from("causelist_entries")
+      .delete()
+      .lt("causelist_date", cutoffDateIso(RETENTION_DAYS));
+    if (cleanupError) {
+      console.error(
+        "[causelist-sync] cleanup of old entries failed:",
+        cleanupError.message,
+      );
     }
 
     return { error: null, causelistDate, count: entries.length };
