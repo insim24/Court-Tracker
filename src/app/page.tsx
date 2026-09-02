@@ -52,7 +52,7 @@ export default async function Home({
     : (cases ?? []);
 
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden bg-background font-sans">
+    <div className="relative flex flex-1 flex-col overflow-hidden bg-background font-sans animate-fade-in">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-accent-bg via-accent-bg/60 to-transparent lg:hidden"

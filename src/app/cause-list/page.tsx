@@ -183,7 +183,7 @@ export default async function CauseListPage({
   const hasDataForToday = availableDates.includes(today);
 
   return (
-    <div className="flex flex-1 flex-col bg-background font-sans">
+    <div className="flex flex-1 flex-col bg-background font-sans animate-fade-in">
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-12">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -274,7 +274,7 @@ export default async function CauseListPage({
 
               <div className="flex-1">
                 <CauselistCalendar
-                  selectedDate={activeDate}
+                  selectedDate={requestedDate ?? null}
                   trackedCounts={trackedCounts}
                   availableDates={availableDates}
                 />

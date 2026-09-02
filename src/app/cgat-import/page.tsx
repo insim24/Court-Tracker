@@ -18,7 +18,7 @@ export default function CgatImportPage() {
   const [tab, setTab] = useState<TabId>("case-no");
 
   return (
-    <div className="flex flex-1 flex-col bg-background font-sans">
+    <div className="flex flex-1 flex-col bg-background font-sans animate-fade-in">
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-12">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
