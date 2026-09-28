@@ -24,16 +24,23 @@ function todayIso(): string {
   return `${y}-${m}-${d}`;
 }
 
-function matchedWatchedAdvocate(
-  entry: CauselistEntryRow,
+function matchedWatchedAdvocateInText(
+  rawText: string | null,
   watched: WatchedAdvocate[],
 ): string | null {
-  const haystack = (entry.raw_text ?? "").toUpperCase();
+  const haystack = (rawText ?? "").toUpperCase();
   for (const w of watched) {
     const needle = w.name.trim().toUpperCase();
     if (needle && haystack.includes(needle)) return w.name;
   }
   return null;
+}
+
+function matchedWatchedAdvocate(
+  entry: CauselistEntryRow,
+  watched: WatchedAdvocate[],
+): string | null {
+  return matchedWatchedAdvocateInText(entry.raw_text, watched);
 }
 
 function splitEntries(
@@ -122,8 +129,9 @@ export default async function CauseListPage({
   const [liteEntriesRes, casesRes, watchedRes] = await Promise.all([
     supabase
       .from("causelist_entries")
-      .select("causelist_date, case_no")
-      .returns<{ causelist_date: string; case_no: string }[]>(),
+      .select("causelist_date, case_no, raw_text")
+      .order("causelist_date", { ascending: false })
+      .returns<{ causelist_date: string; case_no: string; raw_text: string | null }[]>(),
     supabase
       .from("cases")
       .select("id, title, case_number, status, next_hearing_date")
@@ -146,7 +154,10 @@ export default async function CauseListPage({
   const availableDates = [...new Set(liteEntries.map((r) => r.causelist_date))];
   const trackedCounts: Record<string, number> = {};
   for (const e of liteEntries) {
-    if (myCaseByNumber.has(e.case_no)) {
+    const isTracked = myCaseByNumber.has(e.case_no);
+    const isAdvocateFlagged =
+      !isTracked && matchedWatchedAdvocateInText(e.raw_text, watched) !== null;
+    if (isTracked || isAdvocateFlagged) {
       trackedCounts[e.causelist_date] = (trackedCounts[e.causelist_date] ?? 0) + 1;
     }
   }
@@ -191,6 +202,12 @@ export default async function CauseListPage({
           </h1>
           <div className="flex items-center gap-4">
             <FetchCauselistButton />
+            <Link
+              href="/display-board"
+              className="text-sm font-medium text-accent hover:underline"
+            >
+              Live Display Board →
+            </Link>
             <Link
               href="/"
               className="text-sm font-medium text-accent hover:underline"

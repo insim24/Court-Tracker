@@ -64,6 +64,12 @@ export default async function Home({
           </h1>
           <div className="flex flex-wrap gap-3 lg:gap-4">
             <Link
+              href="/display-board"
+              className="text-sm font-medium text-accent hover:underline"
+            >
+              Live Display Board →
+            </Link>
+            <Link
               href="/cause-list"
               className="text-sm font-medium text-accent hover:underline"
             >
