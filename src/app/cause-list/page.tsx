@@ -4,6 +4,7 @@ import { FetchCauselistButton } from "@/components/fetch-causelist-button";
 import { WatchedAdvocates } from "@/components/watched-advocates";
 import { CauselistCalendar } from "@/components/causelist-calendar";
 import { PushSubscribeButton } from "@/components/push-subscribe-button";
+import { matchWatchedAdvocate } from "@/lib/causelist-matching";
 import type { CauselistEntryRow, WatchedAdvocate, Case } from "@/lib/types";
 
 type TrackedCaseInfo = Pick<
@@ -24,42 +25,64 @@ function todayIso(): string {
   return `${y}-${m}-${d}`;
 }
 
-function matchedWatchedAdvocateInText(
-  rawText: string | null,
-  watched: WatchedAdvocate[],
-): string | null {
-  const haystack = (rawText ?? "").toUpperCase();
-  for (const w of watched) {
-    const needle = w.name.trim().toUpperCase();
-    if (needle && haystack.includes(needle)) return w.name;
+// Supabase caps every response at 1000 rows, and the full history is well
+// past that, so page through it explicitly.
+const PAGE_SIZE = 1000;
+
+async function fetchAllLiteEntries(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+) {
+  type LiteEntry = {
+    causelist_date: string;
+    case_no: string;
+    raw_text: string | null;
+  };
+  const all: LiteEntry[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data } = await supabase
+      .from("causelist_entries")
+      .select("causelist_date, case_no, raw_text")
+      .order("causelist_date", { ascending: false })
+      .order("id")
+      .range(from, from + PAGE_SIZE - 1)
+      .returns<LiteEntry[]>();
+    all.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
   }
-  return null;
+  return all;
 }
 
-function matchedWatchedAdvocate(
-  entry: CauselistEntryRow,
-  watched: WatchedAdvocate[],
-): string | null {
-  return matchedWatchedAdvocateInText(entry.raw_text, watched);
-}
-
+// A watched advocate can appear on a case that's also tracked, so the two
+// groups overlap: tracked entries go in the tracked table, every watched
+// advocate hit (tracked or not) goes in the advocate section, and "rest" is
+// everything that's neither.
 function splitEntries(
   entries: CauselistEntryRow[],
   myCaseByNumber: Map<string, TrackedCaseInfo>,
-  watched: WatchedAdvocate[],
+  watchedNames: string[],
 ) {
-  const tracked: { entry: CauselistEntryRow; case: TrackedCaseInfo }[] = [];
-  const advocateFlagged: { entry: CauselistEntryRow; advocate: string }[] = [];
+  const tracked: {
+    entry: CauselistEntryRow;
+    case: TrackedCaseInfo;
+    advocate: string | null;
+  }[] = [];
+  const advocateFlagged: {
+    entry: CauselistEntryRow;
+    advocate: string;
+    isTracked: boolean;
+  }[] = [];
   const rest: CauselistEntryRow[] = [];
 
   for (const entry of entries) {
     const trackedCase = myCaseByNumber.get(entry.case_no);
-    const advocate = matchedWatchedAdvocate(entry, watched);
+    const advocate = matchWatchedAdvocate(entry.raw_text, watchedNames);
     if (trackedCase) {
-      tracked.push({ entry, case: trackedCase });
-    } else if (advocate) {
-      advocateFlagged.push({ entry, advocate });
-    } else {
+      tracked.push({ entry, case: trackedCase, advocate });
+    }
+    if (advocate) {
+      advocateFlagged.push({ entry, advocate, isTracked: Boolean(trackedCase) });
+    }
+    if (!trackedCase && !advocate) {
       rest.push(entry);
     }
   }
@@ -126,12 +149,8 @@ export default async function CauseListPage({
   const supabase = await createClient();
   const today = todayIso();
 
-  const [liteEntriesRes, casesRes, watchedRes] = await Promise.all([
-    supabase
-      .from("causelist_entries")
-      .select("causelist_date, case_no, raw_text")
-      .order("causelist_date", { ascending: false })
-      .returns<{ causelist_date: string; case_no: string; raw_text: string | null }[]>(),
+  const [liteEntries, casesRes, watchedRes] = await Promise.all([
+    fetchAllLiteEntries(supabase),
     supabase
       .from("cases")
       .select("id, title, case_number, status, next_hearing_date")
@@ -143,9 +162,9 @@ export default async function CauseListPage({
       .returns<WatchedAdvocate[]>(),
   ]);
 
-  const liteEntries = liteEntriesRes.data ?? [];
   const myCases = casesRes.data ?? [];
   const watched = watchedRes.data ?? [];
+  const watchedNames = watched.map((w) => w.name);
 
   const myCaseByNumber = new Map(
     myCases.filter((c) => c.case_number).map((c) => [c.case_number as string, c]),
@@ -154,10 +173,10 @@ export default async function CauseListPage({
   const availableDates = [...new Set(liteEntries.map((r) => r.causelist_date))];
   const trackedCounts: Record<string, number> = {};
   for (const e of liteEntries) {
-    const isTracked = myCaseByNumber.has(e.case_no);
-    const isAdvocateFlagged =
-      !isTracked && matchedWatchedAdvocateInText(e.raw_text, watched) !== null;
-    if (isTracked || isAdvocateFlagged) {
+    if (
+      myCaseByNumber.has(e.case_no) ||
+      matchWatchedAdvocate(e.raw_text, watchedNames) !== null
+    ) {
       trackedCounts[e.causelist_date] = (trackedCounts[e.causelist_date] ?? 0) + 1;
     }
   }
@@ -184,10 +203,10 @@ export default async function CauseListPage({
   const activeSplit = splitEntries(
     activeEntriesRes.data ?? [],
     myCaseByNumber,
-    watched,
+    watchedNames,
   );
   const todaySplit = todayEntriesRes
-    ? splitEntries(todayEntriesRes.data ?? [], myCaseByNumber, watched)
+    ? splitEntries(todayEntriesRes.data ?? [], myCaseByNumber, watchedNames)
     : activeSplit;
 
   const hasDataForActiveDate = availableDates.includes(activeDate);
@@ -337,7 +356,7 @@ export default async function CauseListPage({
                           </tr>
                         </thead>
                         <tbody>
-                          {activeSplit.tracked.map(({ entry, case: c }) => (
+                          {activeSplit.tracked.map(({ entry, case: c, advocate }) => (
                             <tr
                               key={entry.id}
                               className="border-t border-border"
@@ -353,7 +372,14 @@ export default async function CauseListPage({
                               <td className="px-3 py-2">
                                 {entry.court_no ?? "—"}
                               </td>
-                              <td className="px-3 py-2">{c.title}</td>
+                              <td className="px-3 py-2">
+                                {c.title}
+                                {advocate && (
+                                  <span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                    {advocate}
+                                  </span>
+                                )}
+                              </td>
                               <td className="px-3 py-2">
                                 {c.case_number ?? "—"}
                               </td>
@@ -377,16 +403,21 @@ export default async function CauseListPage({
                     {activeSplit.advocateFlagged.length})
                   </h2>
                   <p className="text-sm text-muted">
-                    Cases not yet in your tracker, but involving a watched
-                    advocate.
+                    Every case on this date&apos;s list involving a watched
+                    advocate, including ones already in your tracker.
                   </p>
+                  {activeSplit.advocateFlagged.length === 0 && (
+                    <p className="text-sm text-muted">
+                      No watched advocate appears on this date&apos;s list.
+                    </p>
+                  )}
                   <div className="flex flex-col gap-2">
-                    {activeSplit.advocateFlagged.map(({ entry, advocate }) => (
+                    {activeSplit.advocateFlagged.map(({ entry, advocate, isTracked }) => (
                       <EntryCard
                         key={entry.id}
                         entry={entry}
                         badge={{
-                          label: advocate,
+                          label: isTracked ? `${advocate} · tracked` : advocate,
                           className:
                             "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
                         }}

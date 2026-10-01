@@ -6,6 +6,7 @@ import { CaseCalendar } from "@/components/case-calendar";
 import { MobileCaseBrowser } from "@/components/mobile-case-browser";
 import { CaseOrders } from "@/components/case-orders";
 import { FetchAllOrdersButton } from "@/components/fetch-all-orders-button";
+import { NextHearingEditor } from "@/components/next-hearing-editor";
 import { deleteCase } from "@/app/actions";
 import type { Case, CaseOrderRow } from "@/lib/types";
 
@@ -171,7 +172,10 @@ export default async function Home({
                           <td className="px-3 py-2">{c.court ?? "—"}</td>
                           <td className="px-3 py-2 capitalize">{c.status}</td>
                           <td className="px-3 py-2">
-                            {formatDate(c.next_hearing_date)}
+                            <NextHearingEditor
+                              caseId={c.id}
+                              value={c.next_hearing_date}
+                            />
                           </td>
                           <td className="px-3 py-2">
                             <div className="flex flex-col items-end gap-2">

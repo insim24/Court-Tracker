@@ -4,14 +4,8 @@ import { useMemo, useState } from "react";
 import { deleteCase } from "@/app/actions";
 import { RefreshCgatButton } from "@/components/refresh-cgat-button";
 import { CaseOrders } from "@/components/case-orders";
+import { NextHearingEditor } from "@/components/next-hearing-editor";
 import type { Case, CaseOrderRow } from "@/lib/types";
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  // Fixed locale (not the runtime default) so SSR and client hydration
-  // always agree, regardless of server/browser locale settings.
-  return new Date(value + "T00:00:00").toLocaleDateString("en-GB");
-}
 
 const STATUS_STYLES: Record<string, string> = {
   open: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
@@ -106,7 +100,10 @@ export function MobileCaseBrowser({
                   Next hearing
                 </dt>
                 <dd className="font-medium text-accent-strong">
-                  {formatDate(c.next_hearing_date)}
+                  <NextHearingEditor
+                    caseId={c.id}
+                    value={c.next_hearing_date}
+                  />
                 </dd>
               </div>
             </dl>

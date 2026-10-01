@@ -1,5 +1,37 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// Uppercases, turns punctuation into spaces and collapses whitespace, then
+// pads with spaces so names can be matched on whole-word boundaries
+// ("SYED MANZOOR" matches "SYED  MANZOOR." but not "SYED MANZOORUL").
+function normalizeForMatch(value: string): string {
+  const collapsed = value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, " ")
+    .trim();
+  return collapsed ? ` ${collapsed} ` : "";
+}
+
+// Returns the watched advocate name found in a causelist entry's text, or
+// null. When several watched names match (e.g. "Syed Manzoor" and "Syed
+// Manzoor Ahmed"), the longest — most specific — one wins.
+export function matchWatchedAdvocate(
+  text: string | null,
+  watchedNames: string[],
+): string | null {
+  const haystack = normalizeForMatch(text ?? "");
+  if (!haystack) return null;
+  let best: string | null = null;
+  let bestLength = 0;
+  for (const name of watchedNames) {
+    const needle = normalizeForMatch(name);
+    if (needle && needle.length > bestLength && haystack.includes(needle)) {
+      best = name;
+      bestLength = needle.length;
+    }
+  }
+  return best;
+}
+
 export type TrackedListing = {
   caseId: string;
   caseTitle: string;

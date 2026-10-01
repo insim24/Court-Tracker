@@ -56,6 +56,40 @@ export async function deleteCase(id: string): Promise<void> {
   revalidatePath("/");
 }
 
+export type SetNextHearingState = {
+  error: string | null;
+  success: boolean;
+};
+
+// Manual override for any case, CGAT-linked or not. An empty date clears it.
+export async function setNextHearingDate(
+  _prevState: SetNextHearingState,
+  formData: FormData,
+): Promise<SetNextHearingState> {
+  const caseId = formData.get("caseId");
+  if (typeof caseId !== "string" || !caseId) {
+    return { error: "Missing case id.", success: false };
+  }
+  const date = asNullable(formData.get("next_hearing_date"));
+  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { error: "Invalid date.", success: false };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("cases")
+    .update({ next_hearing_date: date })
+    .eq("id", caseId);
+
+  if (error) {
+    return { error: error.message, success: false };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/cause-list");
+  return { error: null, success: true };
+}
+
 export type RefreshCaseState = {
   error: string | null;
   message: string | null;
@@ -96,11 +130,20 @@ export async function refreshCaseFromCgat(
       caseYear: cgat_case_year,
     });
 
+    // CGAT often has no next date for a pending matter (not yet listed).
+    // Don't let that wipe a date the user set by hand; only clear it once
+    // the case is actually disposed.
+    const status = result.status.toLowerCase();
+    const keepExistingDate =
+      !result.nextHearingDate && !status.includes("dispos");
+
     const { error: updateError } = await supabase
       .from("cases")
       .update({
-        status: result.status.toLowerCase(),
-        next_hearing_date: result.nextHearingDate,
+        status,
+        ...(keepExistingDate
+          ? {}
+          : { next_hearing_date: result.nextHearingDate }),
         cgat_last_synced_at: new Date().toISOString(),
       })
       .eq("id", caseId);
