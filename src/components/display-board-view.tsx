@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { DisplayBoardEntry } from "@/lib/adapters/cgat-displayboard";
 
 const POLL_INTERVAL_MS = 10_000;
@@ -16,6 +16,25 @@ function formatTime(iso: string): string {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+type BoardResult =
+  | { ok: true; entries: DisplayBoardEntry[]; fetchedAt: string }
+  | { ok: false; error: string };
+
+async function fetchBoard(): Promise<BoardResult> {
+  try {
+    const res = await fetch("/api/cgat/srinagar/display-board", {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { ok: false, error: data.error ?? "Failed to load display board." };
+    }
+    return { ok: true, entries: data.entries, fetchedAt: data.fetchedAt };
+  } catch {
+    return { ok: false, error: "Failed to load display board." };
+  }
 }
 
 function CourtCard({ entry }: { entry: DisplayBoardEntry }) {
@@ -75,35 +94,35 @@ export function DisplayBoardView() {
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/cgat/srinagar/display-board", {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to load display board.");
-        return;
-      }
-      setEntries(data.entries);
-      setFetchedAt(data.fetchedAt);
+  const applyResult = useCallback((result: BoardResult) => {
+    if (result.ok) {
+      setEntries(result.entries);
+      setFetchedAt(result.fetchedAt);
       setError(null);
-    } catch {
-      setError("Failed to load display board.");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.error);
     }
+    setLoading(false);
   }, []);
 
+  const load = useCallback(() => {
+    fetchBoard().then(applyResult);
+  }, [applyResult]);
+
   useEffect(() => {
-    load();
-    intervalRef.current = setInterval(load, POLL_INTERVAL_MS);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+    let active = true;
+    const tick = () => {
+      fetchBoard().then((result) => {
+        if (active) applyResult(result);
+      });
     };
-  }, [load]);
+    tick();
+    const interval = setInterval(tick, POLL_INTERVAL_MS);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [applyResult]);
 
   const sorted = [...entries].sort(
     (a, b) => courtSortKey(a.courtNo) - courtSortKey(b.courtNo),

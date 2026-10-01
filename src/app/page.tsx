@@ -10,11 +10,6 @@ import { NextHearingEditor } from "@/components/next-hearing-editor";
 import { deleteCase } from "@/app/actions";
 import type { Case, CaseOrderRow } from "@/lib/types";
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  return new Date(value + "T00:00:00").toLocaleDateString();
-}
-
 export default async function Home({
   searchParams,
 }: {
