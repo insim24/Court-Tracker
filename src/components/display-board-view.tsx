@@ -37,55 +37,53 @@ async function fetchBoard(): Promise<BoardResult> {
   }
 }
 
-function CourtCard({ entry }: { entry: DisplayBoardEntry }) {
+function CourtRow({ entry }: { entry: DisplayBoardEntry }) {
   const label =
     entry.courtNo === "Registrar Court"
       ? "Registrar Court"
       : `Court ${entry.courtNo}`;
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-sm font-semibold text-foreground">{label}</h3>
-        <span
-          className={[
-            "whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium",
-            entry.inSession
-              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-              : "bg-chip text-muted",
-          ].join(" ")}
-        >
-          {entry.inSession ? "In session" : "Not in session"}
+    <li className="flex flex-col gap-0.5 border-t border-border pt-2 first:border-t-0 first:pt-0">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-accent-strong">
+          <span
+            className={`h-1.5 w-1.5 shrink-0 rounded-full ${entry.inSession ? "bg-green-500" : "bg-zinc-400 dark:bg-zinc-600"}`}
+          />
+          {label}
         </span>
-      </div>
-
-      {entry.note && <p className="text-xs text-muted">{entry.note}</p>}
-
-      {entry.inSession ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-2xl font-semibold text-accent-strong">
+        {entry.inSession && (
+          <span className="text-base font-semibold text-foreground">
             #{entry.itemNo ?? "—"}
-          </p>
+          </span>
+        )}
+      </div>
+      {entry.inSession ? (
+        <>
           {entry.caseNo && (
-            <p className="text-sm font-medium text-foreground">
+            <span className="text-xs font-medium text-foreground">
               {entry.caseNo}
-            </p>
+            </span>
           )}
           {entry.causeTitle && (
-            <p className="text-sm text-muted">{entry.causeTitle}</p>
+            <span className="truncate text-xs text-muted" title={entry.causeTitle}>
+              {entry.causeTitle}
+            </span>
           )}
           {entry.passover && (
-            <p className="text-xs text-zinc-500">
+            <span className="text-[11px] text-zinc-500">
               Passover: {entry.passover}
-            </p>
+            </span>
           )}
-        </div>
+        </>
       ) : (
-        entry.statusMessage && (
-          <p className="text-sm text-muted">{entry.statusMessage}</p>
+        (entry.statusMessage || entry.note) && (
+          <span className="text-xs text-muted">
+            {entry.statusMessage ?? entry.note}
+          </span>
         )
       )}
-    </div>
+    </li>
   );
 }
 
@@ -129,42 +127,41 @@ export function DisplayBoardView() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-zinc-500">
+        <span>
           {fetchedAt
-            ? `Last updated ${formatTime(fetchedAt)} · refreshes every ${POLL_INTERVAL_MS / 1000}s`
+            ? `Updated ${formatTime(fetchedAt)} · every ${POLL_INTERVAL_MS / 1000}s`
             : "Loading…"}
-        </p>
+        </span>
         <button
           type="button"
           onClick={load}
-          className="text-sm font-medium text-accent hover:underline"
+          className="font-medium text-accent hover:underline"
         >
-          Refresh now
+          Refresh
         </button>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-xs text-red-600" role="alert">
           {error}
         </p>
       )}
 
       {!error && !loading && sorted.length === 0 && (
-        <p className="text-sm text-muted">
-          No courts currently in session for CAT Srinagar. The board only
-          lists courts that are active — check back once hearings are
-          underway.
+        <p className="text-xs text-muted">
+          No courts are on the board right now. It only lists courts that
+          are active.
         </p>
       )}
 
       {sorted.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((entry) => (
-            <CourtCard key={entry.courtNo} entry={entry} />
+        <ul className="flex flex-col gap-2">
+          {sorted.map((entry, i) => (
+            <CourtRow key={`${entry.courtNo}-${i}`} entry={entry} />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

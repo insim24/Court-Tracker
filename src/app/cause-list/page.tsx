@@ -4,6 +4,7 @@ import { FetchCauselistButton } from "@/components/fetch-causelist-button";
 import { WatchedAdvocates } from "@/components/watched-advocates";
 import { CauselistCalendar } from "@/components/causelist-calendar";
 import { PushSubscribeButton } from "@/components/push-subscribe-button";
+import { DisplayBoardView } from "@/components/display-board-view";
 import { matchWatchedAdvocate } from "@/lib/causelist-matching";
 import type { CauselistEntryRow, WatchedAdvocate, Case } from "@/lib/types";
 
@@ -222,12 +223,6 @@ export default async function CauseListPage({
           <div className="flex items-center gap-4">
             <FetchCauselistButton />
             <Link
-              href="/display-board"
-              className="text-sm font-medium text-accent hover:underline"
-            >
-              Live Display Board →
-            </Link>
-            <Link
               href="/"
               className="text-sm font-medium text-accent hover:underline"
             >
@@ -241,72 +236,81 @@ export default async function CauseListPage({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
-              <section className="flex flex-col gap-3 rounded-lg border border-accent-border bg-accent-bg p-4 md:w-72 md:flex-shrink-0">
-                <div className="flex items-baseline justify-between">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Today&apos;s Cases
-                  </h2>
-                  <span className="text-xs text-zinc-500">{today}</span>
-                </div>
+              <div className="flex flex-col gap-4 md:w-72 md:flex-shrink-0">
+                <section className="flex flex-col gap-3 rounded-lg border border-accent-border bg-accent-bg p-4">
+                  <div className="flex items-baseline justify-between">
+                    <h2 className="text-sm font-semibold text-foreground">
+                      Today&apos;s Cases
+                    </h2>
+                    <span className="text-xs text-zinc-500">{today}</span>
+                  </div>
 
-                {!hasDataForToday && (
-                  <p className="text-sm text-muted">
-                    No causelist fetched for today yet.
-                  </p>
-                )}
+                  {!hasDataForToday && (
+                    <p className="text-sm text-muted">
+                      No causelist fetched for today yet.
+                    </p>
+                  )}
 
-                {hasDataForToday && (
-                  <>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                        <strong className="font-semibold text-foreground">
-                          {todaySplit.tracked.length}
-                        </strong>
-                        <span className="text-muted">
-                          tracked
+                  {hasDataForToday && (
+                    <>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                          <strong className="font-semibold text-foreground">
+                            {todaySplit.tracked.length}
+                          </strong>
+                          <span className="text-muted">
+                            tracked
+                          </span>
                         </span>
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
-                        <strong className="font-semibold text-foreground">
-                          {todaySplit.advocateFlagged.length}
-                        </strong>
-                        <span className="text-muted">
-                          flagged
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+                          <strong className="font-semibold text-foreground">
+                            {todaySplit.advocateFlagged.length}
+                          </strong>
+                          <span className="text-muted">
+                            flagged
+                          </span>
                         </span>
-                      </span>
-                    </div>
+                      </div>
 
-                    {todaySplit.tracked.length > 0 && (
-                      <ul className="flex flex-col gap-2 border-t border-accent-border pt-3">
-                        {todaySplit.tracked.slice(0, 6).map(({ entry, case: c }) => (
-                          <li key={entry.id} className="flex flex-col gap-0.5">
-                            <span className="text-[11px] font-medium uppercase tracking-wide text-accent-strong">
-                              Court {entry.court_no ?? "—"} · Sl. {entry.serial_no ?? "—"}
-                            </span>
-                            <span className="truncate text-xs text-muted">
-                              {c.title.toUpperCase()}{" "}
-                              <span className="text-zinc-500">
-                                ({c.case_number ?? "—"})
+                      {todaySplit.tracked.length > 0 && (
+                        <ul className="flex flex-col gap-2 border-t border-accent-border pt-3">
+                          {todaySplit.tracked.slice(0, 6).map(({ entry, case: c }) => (
+                            <li key={entry.id} className="flex flex-col gap-0.5">
+                              <span className="text-[11px] font-medium uppercase tracking-wide text-accent-strong">
+                                Court {entry.court_no ?? "—"} · Sl. {entry.serial_no ?? "—"}
                               </span>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                )}
+                              <span className="truncate text-xs text-muted">
+                                {c.title.toUpperCase()}{" "}
+                                <span className="text-zinc-500">
+                                  ({c.case_number ?? "—"})
+                                </span>
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
 
-                {activeDate !== today && (
-                  <Link
-                    href={`/cause-list?date=${today}`}
-                    className="text-xs font-medium text-accent hover:underline"
-                  >
-                    View today →
-                  </Link>
-                )}
-              </section>
+                  {activeDate !== today && (
+                    <Link
+                      href={`/cause-list?date=${today}`}
+                      className="text-xs font-medium text-accent hover:underline"
+                    >
+                      View today →
+                    </Link>
+                  )}
+                </section>
+
+                <section className="flex flex-1 flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Live Display Board
+                  </h2>
+                  <DisplayBoardView />
+                </section>
+              </div>
 
               <div className="flex-1">
                 <CauselistCalendar
